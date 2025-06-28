@@ -3,9 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from '../../users/user.service';
 import {EnergyCacheService} from "../../cash/energy-cache.service";
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class EnergyRestoreService {
+  private readonly logger = new Logger(EnergyRestoreService.name);
+
   constructor(
     private readonly energyCacheService: EnergyCacheService,
     private readonly userService: UserService,
@@ -14,7 +17,7 @@ export class EnergyRestoreService {
   // Крон, запускающийся раз в 5 минут (пример)
   @Cron(CronExpression.EVERY_5_MINUTES)
   async restoreEnergy() {
-    console.log('🔄 Начинаем проверку восстановления энергии...');
+    this.logger.log('🔄 Начинаем проверку восстановления энергии...');
     const userIds = this.energyCacheService.getAllUserIds();
 
     for (const userId of userIds) {
@@ -66,6 +69,6 @@ export class EnergyRestoreService {
       }
     }
 
-    console.log('✅ Завершили проверку восстановления энергии.');
+    this.logger.log('✅ Завершили проверку восстановления энергии.');
   }
 }
