@@ -20,7 +20,7 @@ async function bootstrap() {
     credentials: false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     origin: '*',
-    allowedHeaders: 'content-type, Authorization',
+    allowedHeaders: '*',
   });
   await app.listen(8000);
   app.use(json({ limit: '5mb' }));
