@@ -76,16 +76,25 @@ export class UserService {
   // Обновляем счёт (очки)
   async updateScore(wallet: string, data: UpdateScoreDto): Promise<UserEntity> {
     const user = await this.userRepo.findOne({ where: { walletAddress:wallet } });
-    user.gameCoins = data.newGem;
-    user.level = data.level;
-    user.levelInd = data.levelInd;
+    if (!user) {
+      throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
+    }
+    if (user.energyCurrent >= 1) {
+      user.gameCoins = data.newGem;
+      user.level = data.level;
+      user.levelInd = data.levelInd;
+
+      // Регистрируем трату энергии в кэше
+      this.energyService.addSpentEnergy(user.id, user.energyCurrent);
+      // Уменьшаем энергию
+      user.energyCurrent--;
+    }
     return this.userRepo.save(user);
   }
 
   async startGame(wallet: string): Promise<GameStartResponseDto> {
     const user = await this.userRepo.findOne({
       where: { walletAddress: wallet },
-      relations: ['inventory', 'inventory.item'] // загружаем инвентарь и связанные предметы
     });
     if (!user) {
       throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);

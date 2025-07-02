@@ -11,18 +11,18 @@ export class LeaderboardService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async getTopPlayers(limit = 10) : Promise<LeaderboardPlayerDto[]> {
+  async getTopPlayers(limit = 100) : Promise<LeaderboardPlayerDto[]> {
     const users = await this.userRepository.find({
-      order: { score: 'DESC' },
+      order: { level: 'DESC' },
       take: limit,
-      select: ['username', 'score'],
+      select: ['username', 'level'],
     });
 
-    return users.map((user, index) => ({
+    return users.map((user) => ({
         id: user.id,
-        rank: index + 1,
+        rank: user.level,
         username: user.username, 
-        score: this.formatScore(user.score),
+        score: this.formatScore(user.gameCoins),
     }));
   }
 
