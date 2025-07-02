@@ -79,16 +79,10 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
     }
-    if (user.energyCurrent >= 1) {
-      user.gameCoins = data.newGem;
-      user.level = data.level;
-      user.levelInd = data.levelInd;
-
-      // Регистрируем трату энергии в кэше
-      this.energyService.addSpentEnergy(user.id, user.energyCurrent);
-      // Уменьшаем энергию
-      user.energyCurrent--;
-    }
+    user.gameCoins = data.newGem;
+    user.level = data.level;
+    user.levelInd = data.levelInd;
+    
     return this.userRepo.save(user);
   }
 
