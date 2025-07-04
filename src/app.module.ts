@@ -25,7 +25,7 @@ import { LeaderBoardModule } from './modules/leaderboard/leaderboard.module';
           database: configService.get('POSTGRES_DB'),
           schema: configService.get('POSTGRES_SCHEMA'),
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          // synchronize: true,
+          synchronize: true,
         };
       },
       inject: [ConfigService],
