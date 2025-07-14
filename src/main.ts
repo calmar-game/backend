@@ -4,7 +4,7 @@ import { json, urlencoded } from 'express';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
@@ -17,14 +17,15 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, config));
 
   app.enableCors({
-    credentials: false,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
     origin: '*',
-    allowedHeaders: '*',
   });
-  await app.listen(8000);
+
   app.use(json({ limit: '5mb' }));
   app.use(urlencoded({ extended: true, limit: '5mb' }));
+
+  await app.listen(8000);
+
 }
 
 bootstrap();
