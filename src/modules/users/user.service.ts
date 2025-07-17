@@ -218,7 +218,10 @@ export class UserService {
 
   async gameLogin(userId: number, accessToken: string): Promise<any> {
 
-    const user = await this.userRepo.findOneBy({ id: userId });
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['inventory', 'inventory.item', 'equippedSkin']
+    });
 
     if (!user) {
       throw new UnauthorizedException("The user doesn't exist");
