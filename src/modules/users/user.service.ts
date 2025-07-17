@@ -1,4 +1,4 @@
-import {BadRequestException, ConflictException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {UserEntity} from './entity/user.entity';
@@ -9,6 +9,7 @@ import {UpdateScoreDto} from "./dto/UpdateScoreDto";
 import {UserDto} from "./dto/user.dto";
 import {InventoryEntity} from "../inventory/entity/inventory.entity";
 import {ItemsService} from "../items/items.service";
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,7 @@ export class UserService {
     @InjectRepository(InventoryEntity)
     private readonly inventoryRepo: Repository<InventoryEntity>,
     private readonly itemService: ItemsService,
+    private readonly jwtService: JwtService,
     private readonly energyService: EnergyCacheService
   ) {}
 
@@ -177,5 +179,58 @@ export class UserService {
       where: {id: user.id},
       relations: ['inventory', 'inventory.item', 'equippedSkin'],
     });
+  }
+
+
+  async updateNonce(walletAddress: string): Promise<string> {
+    const nonce = Math.floor(Math.random() * 1000000).toString();
+  
+    const user = await this.findByWallet(walletAddress);
+    if (user) {
+      user.nonce = nonce;
+      await this.saveUser(user);
+    } else {
+      throw new NotFoundException('User not found');
+    }
+  
+    return nonce;
+  }
+
+  async findById(id: number) {
+    return this.userRepo.findOne({ where: { id } });
+  }
+
+  async getGameToken(userId: number): Promise<string> {
+    const user = await this.userRepo.findOneBy({ id: userId })
+    if (!user) throw new UnauthorizedException('User not found');
+  
+    const payload = {
+      sub: user.id,
+    };
+  
+    const gameToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '2m' // TODO: Fix that
+    });
+  
+    return gameToken;
+  }
+
+  async gameLogin(userId: number, accessToken: string): Promise<any> {
+
+    const user = await this.userRepo.findOneBy({ id: userId });
+
+    if (!user) {
+      throw new UnauthorizedException("The user doesn't exist");
+    }
+
+    return {
+      accessToken,
+      user,
+    }
+  }
+
+  verifyToken(token: string,): { sub: string; walletAddress: string } | null {
+    return this.jwtService.verify(token); 
   }
 }
