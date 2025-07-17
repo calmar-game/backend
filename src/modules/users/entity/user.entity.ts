@@ -2,6 +2,7 @@ import {Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn
 import {IUser} from "../interfaces/IUser";
 import {InventoryEntity} from "../../inventory/entity/inventory.entity";
 import {ItemEntity} from "../../items/entity/item.entity";
+import { CharacterClass } from '../enums/character-class.enum';
 
 
 @Entity()
@@ -12,7 +13,10 @@ export class UserEntity implements IUser{
   @Column({ unique: true })
   walletAddress: string;
 
-  @Column({ unique: true })
+  @Column({ nullable: true })
+  nonce: string;
+
+  @Column({ nullable: true })
   username: string;
 
   @Column({ default: 10 })
@@ -42,4 +46,11 @@ export class UserEntity implements IUser{
 
   @OneToMany(() => InventoryEntity, inv => inv.user)
   inventory: InventoryEntity[];
+
+  @Column({
+    type: 'enum',
+    enum: CharacterClass,
+    nullable: true,
+  })
+  characterClass?: CharacterClass; 
 }

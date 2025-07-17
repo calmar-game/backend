@@ -2,27 +2,23 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from './strategy/jwt.strategy';
 import {AuthController} from "./auth.contoller";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import { UserModule } from '../users/user.module';
 
 @Module({
   imports: [
-    // Подключаем конфигурацию, чтобы читать .env
-    ConfigModule.forRoot(),
-    // Настраиваем Passport
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    // Асинхронная регистрация JwtModule,
-    // чтобы получить секрет из ConfigService
+    PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        // Для бессрочного токена не указываем expiresIn
-        signOptions: {},
+        secret: configService.get<string>('JWT_ACCESS_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_ACCESS_EXPIRES_IN') },
       }),
     }),
+    UserModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

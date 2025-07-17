@@ -5,6 +5,11 @@ import { UserModule } from './modules/users/user.module';
 import { EnergyModule } from './modules/energy/energy.module';
 import { ItemsModule } from './modules/items/items.module';
 import { LeaderBoardModule } from './modules/leaderboard/leaderboard.module';
+import { AuthModule } from './modules/authentication/auth.module';
+import { NonceModule } from './modules/nonce/nonce.module';
+import { ProfileModule } from './modules/profile/profile.module';
+import { GameModule } from './modules/game/game.module';
+import { TaskModule } from './modules/task/task.module';
 
 
 @Module({
@@ -33,9 +38,12 @@ import { LeaderBoardModule } from './modules/leaderboard/leaderboard.module';
     LeaderBoardModule,
     UserModule,
     EnergyModule,
-    ItemsModule
-
-    //AuthModule
+    ProfileModule,
+    ItemsModule,
+    NonceModule,
+    AuthModule,
+    GameModule,
+    TaskModule
   ],
   controllers: [],
   providers: [],

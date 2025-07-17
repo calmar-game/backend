@@ -15,31 +15,31 @@ import {BuyItemDto} from "./dto/buy-item.dto";
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post("/register")
-  @ApiOperation({ summary: 'Регистрация нового пользователя' })
-  @ApiResponse({
-    status: 200,
-    description: 'Ответ с флагом успешности и сообщением',
-    type: UserResponseDto,
-  })
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const { walletAddress, username } = createUserDto;
-    try {
-      const user = await this.userService.createUser(walletAddress, username);
-      return {
-        success: true,
-        message: 'Пользователь успешно создан',
-        data: user,
-      };
-    } catch (error) {
-      // Здесь можно обработать специфичные ошибки, например, конфликт по уникальному ключу
-      return {
-        success: false,
-        message: error.message || 'Ошибка при создании пользователя',
-        data: null,
-      };
-    }
-  }
+  // @Post("/register")
+  // @ApiOperation({ summary: 'Регистрация нового пользователя' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Ответ с флагом успешности и сообщением',
+  //   type: UserResponseDto,
+  // })
+  // async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  //   const { walletAddress, username } = createUserDto;
+  //   try {
+  //     const user = await this.userService.createUser(walletAddress, username);
+  //     return {
+  //       success: true,
+  //       message: 'Пользователь успешно создан',
+  //       data: user,
+  //     };
+  //   } catch (error) {
+  //     // Здесь можно обработать специфичные ошибки, например, конфликт по уникальному ключу
+  //     return {
+  //       success: false,
+  //       message: error.message || 'Ошибка при создании пользователя',
+  //       data: null,
+  //     };
+  //   }
+  // }
 //тест раннера
   // @Get(':id/getById')
   // @ApiOperation({ summary: 'Получить пользователя по id' })
@@ -47,29 +47,29 @@ export class UserController {
   // async getUser(@Param('id', ParseIntPipe) id: number): Promise<UserDto> {
   //   return this.userService.getUser(id);
   // }
-  @Get('/login/:wallet')
-  @ApiOperation({ summary: 'Авторизация пользователя через кошелек' })
-  @ApiResponse({
-    status: 200,
-    description: 'Информация о пользователе с флагом успешности и сообщением',
-    type: UserResponseDto,
-  })
-  async getUserByWallet(@Param('wallet') wallet: string): Promise<UserResponseDto> {
-    try {
-      const user = await this.userService.getUserByWallet(wallet);
-      return {
-        success: true,
-        message: 'Пользователь успешно найден',
-        data: user,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || 'Пользователь не найден',
-        data: null,
-      };
-    }
-  }
+  // @Get('/login/:wallet')
+  // @ApiOperation({ summary: 'Авторизация пользователя через кошелек' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Информация о пользователе с флагом успешности и сообщением',
+  //   type: UserResponseDto,
+  // })
+  // async getUserByWallet(@Param('wallet') wallet: string): Promise<UserResponseDto> {
+  //   try {
+  //     const user = await this.userService.getUserByWallet(wallet);
+  //     return {
+  //       success: true,
+  //       message: 'Пользователь успешно найден',
+  //       data: user,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       message: error.message || 'Пользователь не найден',
+  //       data: null,
+  //     };
+  //   }
+  // }
 
   @Post(':id/update')
   async updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {

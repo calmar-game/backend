@@ -178,4 +178,23 @@ export class UserService {
       relations: ['inventory', 'inventory.item', 'equippedSkin'],
     });
   }
+
+
+  async updateNonce(walletAddress: string): Promise<string> {
+    const nonce = Math.floor(Math.random() * 1000000).toString();
+  
+    const user = await this.findByWallet(walletAddress);
+    if (user) {
+      user.nonce = nonce;
+      await this.saveUser(user);
+    } else {
+      throw new NotFoundException('User not found');
+    }
+  
+    return nonce;
+  }
+
+  async findById(id: number) {
+    return this.userRepo.findOne({ where: { id } });
+  }
 }
