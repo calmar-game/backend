@@ -87,7 +87,12 @@ export class UserController {
     let user;
     try {
       user = this.userService.verifyToken(accessToken);
-      return this.userService.gameLogin(Number(user.sub), accessToken);
+      const data = await this.userService.gameLogin(Number(user.sub), accessToken);
+      return {
+        success: true,
+        message: 'Пользователь успешно найден',
+        data,
+      };
     } catch (error) {
       
       return {
