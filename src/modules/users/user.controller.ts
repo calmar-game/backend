@@ -84,8 +84,19 @@ export class UserController {
       throw new UnauthorizedException('Access token is required');
     }
   
-    const user = await this.userService.verifyToken(accessToken);
-    return this.userService.gameLogin(Number(user.sub), accessToken);
+    let user;
+    try {
+      user = this.userService.verifyToken(accessToken);
+      return this.userService.gameLogin(Number(user.sub), accessToken);
+    } catch (error) {
+      
+      return {
+        success: false,
+        message: error.message || 'Invalid access token',
+        sub: user.sub,
+        data: null,
+      };
+    }
   }
   
 

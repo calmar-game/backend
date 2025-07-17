@@ -210,7 +210,7 @@ export class UserService {
   
     const gameToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '2m' // TODO: Fix that
+      expiresIn: '1d' // TODO: Fix that
     });
   
     return gameToken;
