@@ -1,7 +1,7 @@
-import {Controller, Get, Post, Body, Param, ParseIntPipe, Query, Put} from '@nestjs/common';
+import {Controller, Get, Post, Body, Param, ParseIntPipe, Query, Put, UseGuards, Request, UnauthorizedException} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {ApiOperation, ApiResponse} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiOperation, ApiResponse} from "@nestjs/swagger";
 import {UserDto} from "./dto/user.dto";
 import {CreateUserDto} from "./dto/create-user.dto";
 import { UserResponseDto} from "./dto/response.dto";
@@ -10,6 +10,7 @@ import {UpdateScoreDto} from "./dto/UpdateScoreDto";
 import {GameStartResponseDto} from "./dto/game-start-response.dto";
 import {EquipSkinDto} from "../inventory/dto/equip-skin.dto";
 import {BuyItemDto} from "./dto/buy-item.dto";
+import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UserController {
@@ -71,10 +72,50 @@ export class UserController {
   //   }
   // }
 
+  @Post('/login/:wallet')
+  @ApiOperation({ summary: 'Авторизация пользователя через кошелек' })
+  @ApiResponse({
+    status: 200,
+    description: 'Информация о пользователе с флагом успешности и сообщением',
+    type: UserResponseDto,
+  })
+  async gameLogin(@Query('accessToken') accessToken: string) {
+    if (!accessToken) {
+      throw new UnauthorizedException('Access token is required');
+    }
+  
+    const user = await this.userService.verifyToken(accessToken);
+    return this.userService.gameLogin(Number(user.sub), accessToken);
+  }
+  
+
   @Post(':id/update')
   async updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.userService.updateUser(id, dto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('game/token')
+  @ApiOperation({ summary: 'Получить access token для запуска игры' })
+  @ApiResponse({
+    status: 200,
+    description: 'Возвращает временный access token для запуска игры',
+    schema: {
+      example: {
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  async getGameToken(@Request() req) {
+    if (!req.user) {
+      throw new UnauthorizedException('Access token is required');
+    }
+
+    const userId = req.user.sub;
+
+    return this.userService.getGameToken(userId);
+  }
+
 
   @Get(':wallet/energy')
   @ApiOperation({ summary: 'Получить энергию пользователя по кошельку' })

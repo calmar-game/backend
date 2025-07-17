@@ -8,20 +8,23 @@ import {
   Param,
   Req,
   UseGuards,
+  Request,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { Response } from "express";
 import { UserService } from "../users/user.service";
-import { Request } from "express"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { JwtPayload } from "./types";
+import { JwtService } from "@nestjs/jwt";
+import { Request as RequestI } from "express"
 
 @Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ) {}
 
   @Post("login")
@@ -71,7 +74,7 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
+  async refresh(@Req() req: RequestI, @Res() res: Response) {
     debugger;
 
     const oldRefreshToken = req.cookies?.refreshToken;

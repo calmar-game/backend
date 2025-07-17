@@ -8,7 +8,6 @@ import { LeaderBoardModule } from './modules/leaderboard/leaderboard.module';
 import { AuthModule } from './modules/authentication/auth.module';
 import { NonceModule } from './modules/nonce/nonce.module';
 import { ProfileModule } from './modules/profile/profile.module';
-import { GameModule } from './modules/game/game.module';
 import { TaskModule } from './modules/task/task.module';
 
 
@@ -42,7 +41,6 @@ import { TaskModule } from './modules/task/task.module';
     ItemsModule,
     NonceModule,
     AuthModule,
-    GameModule,
     TaskModule
   ],
   controllers: [],
