@@ -72,7 +72,7 @@ export class UserController {
   //   }
   // }
 
-  @Post('/login/:wallet')
+  @Get('/login')
   @ApiOperation({ summary: 'Авторизация пользователя через кошелек' })
   @ApiResponse({
     status: 200,
