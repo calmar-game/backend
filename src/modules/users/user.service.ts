@@ -259,7 +259,7 @@ export class UserService {
    
     const energyMax = this.getEnergyForBalance(tokenBalance);
 
-    if (user.energyMax <= energyMax) {
+    if (user.energyMax > energyMax) {
       user.energyCurrent = energyMax;
     }
     user.energyMax = energyMax;
