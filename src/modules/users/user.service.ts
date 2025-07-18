@@ -251,13 +251,13 @@ export class UserService {
   }
 
   private getEnergyForBalance(balance: number): number {
-    // Находим подходящий тир
-    const tier = ENERGY_TIERS
-      .slice()
-      .reverse()
-      .find(tier => balance >= tier.minTokens);
-
-    return tier ? tier.maxEnergy : ENERGY_TIERS[0].maxEnergy;
+    if (balance < 100) {
+      return 30;
+    } else if (balance < 300) {
+      return 60;
+    } else {
+      return 100;
+    }
   }
 
   async setEnergy(wallet: string): Promise<UserDto> {
