@@ -12,17 +12,6 @@ import {ItemsService} from "../items/items.service";
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../token/token.service';
 
-interface EnergyTier {
-  maxEnergy: number;
-  minTokens: number;
-}
-
-const ENERGY_TIERS: EnergyTier[] = [
-  { maxEnergy: 30, minTokens: 0 },    // 0-100 PYTHIA
-  { maxEnergy: 60, minTokens: 100 },  // 100-300 PYTHIA
-  { maxEnergy: 100, minTokens: 300 }, // 300+ PYTHIA
-];
-
 @Injectable()
 export class UserService {
   constructor(
