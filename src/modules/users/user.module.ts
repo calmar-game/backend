@@ -6,7 +6,6 @@ import { UserController } from './user.controller';
 import {EnergyCacheModule} from "../cash/energy-cash.module";
 import {ItemsModule} from "../items/items.module";
 import {InventoryEntity} from "../inventory/entity/inventory.entity";
-import { AuthModule } from '../authentication/auth.module';
 import { JwtProviderModule } from '../jwt/jwt.module';
 import { TokenService } from '../token/token.service';
 

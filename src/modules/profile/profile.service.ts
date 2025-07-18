@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../users/entity/user.entity';
 import { CharacterClass } from '../users/enums/character-class.enum';
+import { UserService } from '../users/user.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly userService: UserService,
   ) {}
 
   async getProfileByUserId(userId: number) {
@@ -19,9 +21,10 @@ export class ProfileService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
+
+    const energyUser = await this.userService.setEnergy(user.walletAddress);
     return {
-      ...user,
+      ...energyUser,
       isProfileCompleted: !!user.username,
     };
   }
