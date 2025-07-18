@@ -32,7 +32,6 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response
   ) {
-    debugger;
     const { accessToken, refreshToken } =
       await this.authService.login(loginDto);
 
@@ -51,7 +50,6 @@ export class AuthController {
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response
   ) {
-    debugger;
 
     const tokens = await this.authService.register(dto);
     if (!tokens) throw new UnauthorizedException("Signature invalid");
@@ -68,14 +66,12 @@ export class AuthController {
 
   @Get('nonce/:walletAddress')
   async getNonce(@Param('walletAddress') walletAddress: string) {
-    debugger;
 
     return await this.authService.updateNonce(walletAddress);
   }
 
   @Post('refresh')
   async refresh(@Req() req: RequestI, @Res() res: Response) {
-    debugger;
 
     const oldRefreshToken = req.cookies?.refreshToken;
     if (!oldRefreshToken) throw new UnauthorizedException('Missing refresh token');

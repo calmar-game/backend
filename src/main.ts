@@ -20,7 +20,10 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: 'https://backendforgames.com',
+    origin: [
+      'https://backendforgames.com',
+      'http://localhost' // TODO: Special for Vladislav Appache Server, remove that in production
+    ],
     credentials: true,
     methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
     allowedHeaders: ['Content-Type','Authorization'],
