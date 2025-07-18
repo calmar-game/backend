@@ -9,6 +9,7 @@ import { AuthModule } from './modules/authentication/auth.module';
 import { NonceModule } from './modules/nonce/nonce.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { TaskModule } from './modules/task/task.module';
+import { ProxyModule } from './modules/proxy/proxy.module';
 
 
 @Module({
@@ -41,7 +42,8 @@ import { TaskModule } from './modules/task/task.module';
     ItemsModule,
     NonceModule,
     AuthModule,
-    TaskModule
+    TaskModule,
+    ProxyModule
   ],
   controllers: [],
   providers: [],

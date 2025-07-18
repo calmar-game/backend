@@ -22,8 +22,6 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://backendforgames.com',
-      'https://localhost:5173',
-      'http://localhost:5173',
       'http://localhost' // TODO: Special for Vladislav Appache Server, remove that in production
     ],
     credentials: true,
