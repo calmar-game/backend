@@ -8,11 +8,12 @@ import {ItemsModule} from "../items/items.module";
 import {InventoryEntity} from "../inventory/entity/inventory.entity";
 import { AuthModule } from '../authentication/auth.module';
 import { JwtProviderModule } from '../jwt/jwt.module';
+import { TokenService } from '../token/token.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, InventoryEntity]), JwtProviderModule, EnergyCacheModule,ItemsModule],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, TokenService],
   exports: [UserService],
 })
 export class UserModule {}

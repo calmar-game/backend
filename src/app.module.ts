@@ -43,7 +43,7 @@ import { ProxyModule } from './modules/proxy/proxy.module';
     NonceModule,
     AuthModule,
     TaskModule,
-    ProxyModule
+    ProxyModule,
   ],
   controllers: [],
   providers: [],

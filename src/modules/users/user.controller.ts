@@ -222,4 +222,16 @@ export class UserController {
   ): Promise<UserDto> {
     return this.userService.buyItem(wallet, buyItemDto.itemName);
   }
+
+  @Post(':wallet/set-energy')
+  @ApiOperation({ summary: 'Установить энергию пользователя' })
+  @ApiResponse({
+    status: 200,
+    description: 'Возвращает обновлённые данные пользователя после установки энергии.',
+    type: UserDto,
+  })
+  async setEnergy(@Param('wallet') wallet: string): Promise<UserDto> {
+    
+    return this.userService.setEnergy(wallet);
+  } 
 }

@@ -10,6 +10,18 @@ import {UserDto} from "./dto/user.dto";
 import {InventoryEntity} from "../inventory/entity/inventory.entity";
 import {ItemsService} from "../items/items.service";
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../token/token.service';
+
+interface EnergyTier {
+  maxEnergy: number;
+  minTokens: number;
+}
+
+const ENERGY_TIERS: EnergyTier[] = [
+  { maxEnergy: 30, minTokens: 0 },    // 0-100 PYTHIA
+  { maxEnergy: 60, minTokens: 100 },  // 100-300 PYTHIA
+  { maxEnergy: 100, minTokens: 300 }, // 300+ PYTHIA
+];
 
 @Injectable()
 export class UserService {
@@ -20,7 +32,8 @@ export class UserService {
     private readonly inventoryRepo: Repository<InventoryEntity>,
     private readonly itemService: ItemsService,
     private readonly jwtService: JwtService,
-    private readonly energyService: EnergyCacheService
+    private readonly energyService: EnergyCacheService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async createUser(walletAddress: string, username: string): Promise<UserEntity> {
@@ -235,5 +248,32 @@ export class UserService {
 
   verifyToken(token: string,): { sub: string; walletAddress: string } | null {
     return this.jwtService.verify(token); 
+  }
+
+  private getEnergyForBalance(balance: number): number {
+    // Находим подходящий тир
+    const tier = ENERGY_TIERS
+      .slice()
+      .reverse()
+      .find(tier => balance >= tier.minTokens);
+
+    return tier ? tier.maxEnergy : ENERGY_TIERS[0].maxEnergy;
+  }
+
+  async setEnergy(wallet: string): Promise<UserDto> {
+    const tokenBalance = await this.tokenService.getTokenBalance(wallet);
+    console.log(tokenBalance);
+    const user = await this.userRepo.findOne({ where: { walletAddress: wallet } });
+    if (!user) {
+      throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
+    }
+   
+    const energyMax = this.getEnergyForBalance(tokenBalance);
+
+    if (user.energyMax <= energyMax) {
+      user.energyCurrent = energyMax;
+    }
+    user.energyMax = energyMax;
+    return this.userRepo.save(user);
   }
 }
