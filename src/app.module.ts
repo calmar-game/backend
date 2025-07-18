@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/users/user.module';
@@ -9,7 +9,7 @@ import { AuthModule } from './modules/authentication/auth.module';
 import { NonceModule } from './modules/nonce/nonce.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { TaskModule } from './modules/task/task.module';
-import { ProxyModule } from './modules/proxy/proxy.module';
+import { JupiterProxyMiddleware } from './modules/middlewares/jupiter.middleware';
 
 
 @Module({
@@ -43,9 +43,14 @@ import { ProxyModule } from './modules/proxy/proxy.module';
     NonceModule,
     AuthModule,
     TaskModule,
-    ProxyModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JupiterProxyMiddleware)
+      .forRoutes('jupiter-api/*');
+  }
+}
