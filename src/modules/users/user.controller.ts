@@ -72,7 +72,7 @@ export class UserController {
   //   }
   // }
 
-  @Post('/login/:wallet')
+  @Get('/login')
   @ApiOperation({ summary: 'Авторизация пользователя через кошелек' })
   @ApiResponse({
     status: 200,
@@ -84,8 +84,24 @@ export class UserController {
       throw new UnauthorizedException('Access token is required');
     }
   
-    const user = await this.userService.verifyToken(accessToken);
-    return this.userService.gameLogin(Number(user.sub), accessToken);
+    let user;
+    try {
+      user = this.userService.verifyToken(accessToken);
+      const data = await this.userService.gameLogin(Number(user.sub), accessToken);
+      return {
+        success: true,
+        message: 'Пользователь успешно найден',
+        data,
+      };
+    } catch (error) {
+      
+      return {
+        success: false,
+        message: error.message || 'Invalid access token',
+        sub: user.sub,
+        data: null,
+      };
+    }
   }
   
 
