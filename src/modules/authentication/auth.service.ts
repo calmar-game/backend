@@ -28,6 +28,7 @@ export class AuthService {
     user.nonce = Math.floor(Math.random() * 1000000).toString();
     await this.userService.saveUser(user);
 
+    console.log( "31. auth.service", user)
     const payload = { sub: user.id, walletAddress: user.walletAddress };
 
     const accessToken = await this.jwtService.signAsync(payload, { secret: process.env.JWT_ACCESS_SECRET, expiresIn: process.env.JWT_ACCESS_EXPIRES_IN });

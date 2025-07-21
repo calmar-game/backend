@@ -32,6 +32,7 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response
   ) {
+    console.log("35. auth.controller.", loginDto)
     const { accessToken, refreshToken } =
       await this.authService.login(loginDto);
 
