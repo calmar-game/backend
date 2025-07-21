@@ -18,11 +18,14 @@ export class ProfileService {
       where: { id: userId },
     });
   
+    console.info(user);
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     const energyUser = await this.userService.setEnergy(user.walletAddress);
+    console.info(energyUser)
     return {
       ...energyUser,
       isProfileCompleted: !!user.username,

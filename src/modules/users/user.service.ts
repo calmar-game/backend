@@ -253,6 +253,9 @@ export class UserService {
     const tokenBalance = await this.tokenService.getTokenBalance(wallet);
     console.log(tokenBalance);
     const user = await this.userRepo.findOne({ where: { walletAddress: wallet } });
+
+    console.log(user);
+
     if (!user) {
       throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
     }
