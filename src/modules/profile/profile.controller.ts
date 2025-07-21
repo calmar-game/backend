@@ -21,6 +21,7 @@ export class ProfileController {
     @Body() body: { username: string; characterClass: CharacterClass },
   ) {
     const userId = req.user.sub;
+    console.log(userId)
     const { username, characterClass } = body;
     return this.profileService.updateProfile(userId, username, characterClass);
   }
