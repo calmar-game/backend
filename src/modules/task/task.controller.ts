@@ -4,6 +4,7 @@ import { TaskEntity } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard';
 import { UserDto } from '../users/dto/user.dto';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('tasks')
 export class TaskController {
@@ -11,6 +12,15 @@ export class TaskController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all user tasks (completed tasks are marked with true). if userId is not provided, all tasks will be returned',
+    description: 'Get all user tasks',
+    tags: ['tasks'],
+    responses: {
+      '200': {
+        description: 'Tasks',
+      },
+    },
+  })
   findAll(@Request() req): Promise<(TaskEntity & { completed?: boolean })[]> {
     const userId = req.user.sub;
     return this.taskService.findAll(userId);
@@ -38,6 +48,15 @@ export class TaskController {
 
   @UseGuards(JwtAuthGuard)
   @Post('complete/:id')
+  @ApiOperation({ summary: 'Complete task (side-effect is energy update)',
+    description: 'Complete task',
+    tags: ['tasks'],
+    responses: {
+      '200': {
+        description: 'Task completed',
+      },
+    },
+   })
   completeTask(@Param('id') id: string, @Request() req): Promise<UserDto> {
     const userId = req.user.sub;
     return this.taskService.completeTask(userId, Number(id));
