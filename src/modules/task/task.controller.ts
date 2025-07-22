@@ -21,7 +21,7 @@ export class TaskController {
       },
     },
   })
-  findAll(@Request() req): Promise<(TaskEntity & { completed?: boolean })[]> {
+  findAll(@Request() req: { user?: { sub: number } }): Promise<(TaskEntity & { completed?: boolean })[]> {
     const userId = req.user.sub;
     return this.taskService.findAll(userId);
   }
@@ -57,7 +57,7 @@ export class TaskController {
       },
     },
    })
-  completeTask(@Param('id') id: string, @Request() req): Promise<UserDto> {
+  completeTask(@Param('id') id: string, @Request() req: { user?: { sub: number } }): Promise<UserDto> {
     const userId = req.user.sub;
     return this.taskService.completeTask(userId, Number(id));
   }
