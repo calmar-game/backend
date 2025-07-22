@@ -122,7 +122,7 @@ export class UserController {
       },
     },
   })
-  async getGameToken(@Request() req) {
+  async getGameToken(@Request() req: { user: { sub: number } }) {
     if (!req.user) {
       throw new UnauthorizedException('Access token is required');
     }

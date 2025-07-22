@@ -14,7 +14,7 @@ export class ProfileService {
   ) {}
 
   async getProfileByUserId(userId?: number) {
-    const users = await this.userRepository.findOne({
+    const users = await this.userRepository.find({
       where: { id: userId },
     });
 
@@ -37,11 +37,13 @@ export class ProfileService {
       throw new BadRequestException('Invalid username');
     }
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const users = await this.userRepository.find({ where: { id: userId } });
 
-    if (!user) {
+    if (!users[0]) {
       throw new NotFoundException('User not found');
     }
+
+    const user = users[0];
 
     user.username = username;
     user.characterClass = characterClass;

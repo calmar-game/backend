@@ -57,7 +57,7 @@ export class TaskController {
       },
     },
    })
-  completeTask(@Param('id') id: string, @Request() req): Promise<UserDto> {
+  completeTask(@Param('id') id: string, @Request() req: { user: { sub: number } }): Promise<UserDto> {
     const userId = req.user.sub;
     return this.taskService.completeTask(userId, Number(id));
   }
