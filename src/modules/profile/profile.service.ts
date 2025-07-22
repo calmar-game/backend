@@ -13,19 +13,14 @@ export class ProfileService {
     private readonly userService: UserService,
   ) {}
 
-  async getProfileByUserId(userId: number) {
-    console.log('id from sub: ', userId);
-    const users = await this.userRepository.find({
+  async getProfileByUserId(userId?: number) {
+    const users = await this.userRepository.findOne({
       where: { id: userId },
     });
-
-    console.info('users', users);
 
     if (!users[0]) {
       throw new NotFoundException('User not found');
     }
-
-    console.log('current user from sub: ', users[0]);
     const user = users[0];
 
     const energyUser = await this.userService.setEnergy(user.walletAddress);

@@ -3,6 +3,7 @@ import {IUser} from "../interfaces/IUser";
 import {InventoryEntity} from "../../inventory/entity/inventory.entity";
 import {ItemEntity} from "../../items/entity/item.entity";
 import { CharacterClass } from '../enums/character-class.enum';
+import { UserTasksEntity } from './user-tasks.entity';
 
 
 @Entity()
@@ -53,4 +54,7 @@ export class UserEntity implements IUser{
     nullable: true,
   })
   characterClass?: CharacterClass; 
+
+  @OneToMany(() => UserTasksEntity, (userTasks) => userTasks.user)
+  tasks: UserTasksEntity[];
 }

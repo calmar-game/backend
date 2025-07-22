@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import { UserTasksEntity } from '../users/entity/user-tasks.entity';
 
-@Entity()
-export class Task {
+@Entity('task')
+export class TaskEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -19,4 +20,13 @@ export class Task {
 
   @Column()
   value: number; 
+
+  @OneToMany(() => UserTasksEntity, (userTasks) => userTasks.task)
+  users: UserTasksEntity[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;  
 }

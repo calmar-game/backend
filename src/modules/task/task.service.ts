@@ -1,18 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Task } from './task.entity';
+import { TaskEntity } from './task.entity';
 import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UserTasksEntity } from '../users/entity/user-tasks.entity';
+import { UserEntity } from '../users/entity/user.entity';
+import { UserService } from '../users/user.service';
+import { UserDto } from '../users/dto/user.dto';
 
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectRepository(Task)
-    private taskRepo: Repository<Task>,
+    @InjectRepository(TaskEntity)
+    private taskRepo: Repository<TaskEntity>,
+    @InjectRepository(UserTasksEntity)
+    private userTaskRepo: Repository<UserTasksEntity>,
+    @InjectRepository(UserEntity)
+    private userRepo: Repository<UserEntity>,
+    private userService: UserService,
   ) {}
 
-  findAll() {
-    return this.taskRepo.find();
+  async findAll(userId?: number): Promise<(TaskEntity & { completed?: boolean })[]> {
+    const tasks = await this.taskRepo.find();
+    const userTasks = userId ? await this.userTaskRepo.find({ where: { userId } }) : [];
+
+    return tasks.map(task => ({
+      ...task,
+      completed: userTasks.some(userTask => userTask.taskId === task.id),
+    }));
   }
 
   findOne(id: number) {
@@ -24,11 +39,42 @@ export class TaskService {
     return this.taskRepo.save(task);
   }
 
-  update(id: number, data: Partial<Task>) {
+  update(id: number, data: Partial<TaskEntity>) {
     return this.taskRepo.update(id, data);
   }
 
   remove(id: number) {
     return this.taskRepo.delete(id);
+  }
+
+  async completeTask(userId: number, taskId: number): Promise<UserDto> {
+    const task = await this.taskRepo.findOneBy({ id: taskId });
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const userTasks = await this.userTaskRepo.find({ where: { userId, taskId } });
+
+    if (userTasks.length > 0) {
+      throw new ConflictException('User task already completed');
+    }
+
+    const completedTask = this.userTaskRepo.create({
+      userId,
+      taskId,
+      completed: true,
+    });
+
+    await this.userTaskRepo.save(completedTask);
+    return this.userService.setEnergy(user.walletAddress);
   }
 }

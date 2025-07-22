@@ -11,6 +11,7 @@ import {InventoryEntity} from "../inventory/entity/inventory.entity";
 import {ItemsService} from "../items/items.service";
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../token/token.service';
+import { UserTasksEntity } from './entity/user-tasks.entity';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,8 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly energyService: EnergyCacheService,
     private readonly tokenService: TokenService,
+    @InjectRepository(UserTasksEntity)
+    private readonly userTaskRepo: Repository<UserTasksEntity>,
   ) {}
 
   async createUser(walletAddress: string, username: string): Promise<UserEntity> {
@@ -260,7 +263,12 @@ export class UserService {
       throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
     }
    
-    const energyMax = this.getEnergyForBalance(tokenBalance);
+    const energyFromBalance = this.getEnergyForBalance(tokenBalance);
+
+    const energyFromTasks = await this.userTaskRepo.find({ where: { userId: user.id, completed: true }, relations: ['task'] });
+    const totalEnergy = energyFromTasks.reduce((acc, item) => acc + item.task?.value, 0);
+
+    const energyMax = energyFromBalance + totalEnergy;
 
     if (user.energyMax > energyMax) {
       user.energyCurrent = energyMax;
