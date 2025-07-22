@@ -9,7 +9,7 @@ export class ProfileController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getProfile(@Request() req: { user?: { sub: number } }) {
+  async getProfile(@Request() req) {
     const userId = req.user.sub;
     return this.profileService.getProfileByUserId(userId);
   }
@@ -17,7 +17,7 @@ export class ProfileController {
   @UseGuards(JwtAuthGuard)
   @Patch()
   async updateProfile(
-    @Request() req: { user?: { sub: number } },
+    @Request() req,
     @Body() body: { username: string; characterClass: CharacterClass },
   ) {
     const userId = req.user.sub;
