@@ -24,10 +24,19 @@ export class ProfileService {
     const user = users[0];
 
     const energyUser = await this.userService.setEnergy(user.walletAddress);
+
+    const [allUsers, totalUsers] = await this.userRepository.findAndCount({
+      select: ['id', 'gameCoins'],
+    });
+
+    const place = allUsers.findIndex((user) => user.id === userId) + 1;
+
     console.info(energyUser)
     return {
       ...energyUser,
       isProfileCompleted: !!user.username,
+      place: place,
+      totalUsers: totalUsers,
     };
   }
 
