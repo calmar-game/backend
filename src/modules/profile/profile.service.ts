@@ -27,6 +27,9 @@ export class ProfileService {
 
     const [allUsers, totalUsers] = await this.userRepository.findAndCount({
       select: ['id', 'gameCoins'],
+      order: {
+        gameCoins: 'DESC',
+      },
     });
 
     const place = allUsers.findIndex((user) => user.id === userId) + 1;
