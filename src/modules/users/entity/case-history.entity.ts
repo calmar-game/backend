@@ -38,6 +38,12 @@ export class CaseHistoryEntity {
       })
     caseType?: ECaseType; 
 
+    @Column({
+        type: 'boolean',
+        default: false,
+      })
+    isDaily: boolean; 
+
     @CreateDateColumn()
     createdAt: Date;
 }

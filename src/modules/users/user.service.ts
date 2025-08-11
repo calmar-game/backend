@@ -41,9 +41,9 @@ export class UserService {
   //TODO: установить id для предмета
   private goldMaskId: 10;
 
-  private caseFunctions: Record<ECaseType, (userId: number) => Promise<void>> = {
+  private caseFunctions: Record<ECaseType, (userId: number, isDaily: boolean) => Promise<void>> = {
     [ECaseType.gold_mask_repeat]: async () => {},
-    [ECaseType.energy_10]: async (userId: number) => {
+    [ECaseType.energy_10]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -60,9 +60,10 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
-    [ECaseType.energy_30]: async (userId: number) => {
+    [ECaseType.energy_30]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -79,9 +80,10 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
-    [ECaseType.energy_50]: async (userId: number) => {
+    [ECaseType.energy_50]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -98,9 +100,10 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
-    [ECaseType.coins_100]: async (userId: number) => {
+    [ECaseType.coins_100]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -117,9 +120,10 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
-    [ECaseType.coins_250]: async (userId: number) => {
+    [ECaseType.coins_250]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -138,7 +142,7 @@ export class UserService {
         caseType,
       })
     },
-    [ECaseType.coins_500]: async (userId: number) => {
+    [ECaseType.coins_500]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
         where: {
           id: userId,
@@ -155,9 +159,10 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
-    [ECaseType.gold_mask]: async (userId: number) => {
+    [ECaseType.gold_mask]: async (userId: number, isDaily: boolean = false) => {
       const user = await this.userRepo.findOne({
         where: { id: userId },
         relations: ['inventory', 'inventory.item'],
@@ -186,6 +191,7 @@ export class UserService {
       await this.caseHistoryRepository.save({
         userId,
         caseType,
+        isDaily,
       })
     },
   }
@@ -531,6 +537,45 @@ export class UserService {
     }
 
     await this.caseFunctions[caseType](user.id);
+    return caseType;
+  }
+
+  async openDailyCase(userId: number): Promise<ECaseType | null> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`Пользователь с идентификатором ${userId} не найден`);
+    }
+
+    if (user.gameCoins < CASE_PRICE) {
+      throw new BadRequestException(`У пользователя недостаточно монет, необходимо ${CASE_PRICE}`);
+    }
+
+    const lastDailyCase = await this.caseHistoryRepository.findOne({ where: { userId, isDaily: true }, order: { createdAt: 'DESC' } });
+    if (lastDailyCase) {
+      const now = new Date().getTime();
+      const day = 24 * 60 * 60 * 1000;
+      if (lastDailyCase.createdAt.getTime() + day > now) {
+        throw new BadRequestException(`Ежедневный кейс уже открыт`);
+      }
+    }
+
+    const coef = Math.random();
+    let caseType: ECaseType;
+
+    for (const key of Object.values(ECaseType)) {
+      const [ bottom, top ] = CASE_CHANCES[key];
+      if (coef >= bottom && coef <= top) {
+        caseType = key as ECaseType;
+        break;
+      }
+    }
+
+    if (!caseType) {
+      throw new InternalServerErrorException(`Произошла неизвестная ошибка при вычислении кейса`)
+    }
+
+    await this.caseFunctions[caseType](user.id, true);
     return caseType;
   }
 }

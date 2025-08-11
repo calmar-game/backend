@@ -223,8 +223,8 @@ export class UserController {
     return this.userService.buyItem(wallet, buyItemDto.itemName);
   }
 
-  @Post('open-case')
-  @ApiOperation({ summary: 'Отркыть кейс для пользователя' })
+  @Post(':wallet/set-energy')
+  @ApiOperation({ summary: 'Установить энергию пользователя' })
   @ApiResponse({
     status: 200,
     description: 'Возвращает обновлённые данные пользователя после установки энергии.',
@@ -233,12 +233,25 @@ export class UserController {
   async setEnergy(@Param('wallet') wallet: string): Promise<UserDto> {
     
     return this.userService.setEnergyAndCoins(wallet);
-  }
+  } 
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Post('open-case')
   async getProfile(@Request() req: { user: { sub: number }}) {
     const userId = req.user.sub;
     return this.userService.openCase(userId);
+  }
+
+
+  @UseGuards(JwtAuthGuard)
+  @Post('daily-case')
+  @ApiOperation({ summary: 'Открыть ежедневный кейс' })
+  @ApiResponse({
+    status: 200,
+    description: 'Возвращает тип полученного кейса',
+  })
+  async dailyCase(@Request() req: { user: { sub: number }}) {
+    const userId = req.user.sub;
+    return this.userService.openDailyCase(userId);
   }
 }
