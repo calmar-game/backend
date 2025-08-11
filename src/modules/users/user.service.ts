@@ -41,7 +41,7 @@ export class UserService {
   //TODO: установить id для предмета
   private goldMaskId: 10;
 
-  private caseFunctions: Record<ECaseType, (userId: number, isDaily: boolean) => Promise<void>> = {
+  private caseFunctions: Record<ECaseType, (userId: number, isDaily?: boolean) => Promise<void>> = {
     [ECaseType.gold_mask_repeat]: async () => {},
     [ECaseType.energy_10]: async (userId: number, isDaily: boolean = false) => {
       const users = await this.userRepo.find({
