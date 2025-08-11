@@ -75,6 +75,6 @@ export class TaskService {
     });
 
     await this.userTaskRepo.save(completedTask);
-    return this.userService.setEnergy(user.walletAddress);
+    return this.userService.setEnergyAndCoins(user.walletAddress);
   }
 }

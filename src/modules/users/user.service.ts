@@ -1,4 +1,4 @@
-import {BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import {BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {UserEntity} from './entity/user.entity';
@@ -12,9 +12,184 @@ import {ItemsService} from "../items/items.service";
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../token/token.service';
 import { UserTasksEntity } from './entity/user-tasks.entity';
+import { CoinHistoryEntity } from './entity/coin-history.entity';
+import { CaseHistoryEntity, ECaseType } from './entity/case-history.entity';
+
+const CASE_PRICE = 200;
+const COINS_PER_TOKEN = 100;
+const MAX_ENERGY = 500;
+
+type TStartDiapason = number;
+type TEndDiapason = number;
+
+
+const CASE_CHANCES: Record<ECaseType, [TStartDiapason, TEndDiapason]> = {
+  [ECaseType.energy_10]: [0, 0.3],
+  [ECaseType.energy_30]: [0.31, 0.5],
+  [ECaseType.energy_50]: [0.51, 0.7],
+  [ECaseType.coins_100]: [0.71, 0.9],
+  [ECaseType.coins_250]: [0.91, 0.98],
+  [ECaseType.coins_500]: [0.981, 0.999],
+  [ECaseType.gold_mask]: [0.9991, 1],
+  [ECaseType.gold_mask_repeat]: [-1,-1],
+}
+
+
 
 @Injectable()
 export class UserService {
+  //TODO: установить id для предмета
+  private goldMaskId: 10;
+
+  private caseFunctions: Record<ECaseType, (userId: number) => Promise<void>> = {
+    [ECaseType.gold_mask_repeat]: async () => {},
+    [ECaseType.energy_10]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.energyCurrent += 10;
+      const caseType = ECaseType.energy_10;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.energy_30]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.energyCurrent += 30;
+      const caseType = ECaseType.energy_30;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.energy_50]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.energyCurrent += 50;
+      const caseType = ECaseType.energy_50;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.coins_100]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.gameCoins += 100;
+      const caseType = ECaseType.coins_100;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.coins_250]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.gameCoins += 250;
+      const caseType = ECaseType.coins_250;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.coins_500]: async (userId: number) => {
+      const users = await this.userRepo.find({
+        where: {
+          id: userId,
+        }
+      })
+
+      if (users.length === 0)
+        return;
+
+      const user = users[0];
+      user.gameCoins += 500;
+      const caseType = ECaseType.coins_500;
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+    [ECaseType.gold_mask]: async (userId: number) => {
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        relations: ['inventory', 'inventory.item'],
+      });
+
+      if (!user) {
+        return;
+      }
+
+      let caseType = ECaseType.gold_mask;
+      let existingInventory = user.inventory.find(
+        (inv) => inv.itemId === this.goldMaskId,
+      );
+      if (!existingInventory) {
+        // Если не найдено, создаём новую запись
+        const newInv = this.inventoryRepo.create({
+          userId: user.id,
+          itemId: this.goldMaskId,
+        });
+        await this.inventoryRepo.save(newInv);
+      } else {
+        user.gameCoins += 400;
+        caseType= ECaseType.gold_mask_repeat  
+      }
+      await this.userRepo.save(user);
+      await this.caseHistoryRepository.save({
+        userId,
+        caseType,
+      })
+    },
+  }
+
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
@@ -26,7 +201,12 @@ export class UserService {
     private readonly tokenService: TokenService,
     @InjectRepository(UserTasksEntity)
     private readonly userTaskRepo: Repository<UserTasksEntity>,
+    @InjectRepository(CoinHistoryEntity)
+    private readonly coinHistoryRepository: Repository<CoinHistoryEntity>,
+    @InjectRepository(CaseHistoryEntity)
+    private readonly caseHistoryRepository: Repository<CaseHistoryEntity>,
   ) {}
+
 
   async createUser(walletAddress: string, username: string): Promise<UserEntity> {
     const existingByWallet = await this.userRepo.findOne({ where: { walletAddress } });
@@ -252,17 +432,38 @@ export class UserService {
     }
   }
 
-  async setEnergy(wallet: string): Promise<UserDto> {
+  async setEnergyAndCoins(wallet: string): Promise<UserDto> {
     const tokenBalance = await this.tokenService.getTokenBalance(wallet);
     console.log(tokenBalance);
     const user = await this.userRepo.findOne({ where: { walletAddress: wallet } });
-
-    console.log(user);
 
     if (!user) {
       throw new NotFoundException(`Пользователь с кошельком ${wallet} не найден`);
     }
    
+    const coinsRow = await this.getLastCoinHistory(user.id);
+    if (coinsRow) {
+      const { balance, createdAt } = coinsRow;
+      if (balance < tokenBalance) {
+        user.gameCoins += Math.floor(tokenBalance - balance) * COINS_PER_TOKEN;
+        await this.coinHistoryRepository.save({
+          userId: user.id,
+          balance: tokenBalance,
+        })
+      } else {
+        const now = new Date().getTime();
+        const month = 30 * 24 * 60 * 60 * 1000;
+        if ((balance !== tokenBalance) && createdAt.getTime() + month < now) {
+          await this.coinHistoryRepository.save({
+            userId: user.id,
+            balance: tokenBalance,
+          })
+        }
+      }
+    }
+
+
+
     const energyFromBalance = this.getEnergyForBalance(tokenBalance);
 
     const energyFromTasks = await this.userTaskRepo.find({ where: { userId: user.id, completed: true }, relations: ['task'] });
@@ -271,9 +472,65 @@ export class UserService {
     const energyMax = energyFromBalance + totalEnergy;
 
     if (user.energyMax > energyMax) {
-      user.energyCurrent = energyMax;
+      const { energyCurrent, energyMax } = user
+      const additionalEnergy = energyCurrent > energyMax ?  energyCurrent - energyMax : 0;
+      const currentEnergy = energyMax + additionalEnergy
+      user.energyCurrent = currentEnergy > MAX_ENERGY ? MAX_ENERGY : currentEnergy;
     }
     user.energyMax = energyMax;
     return this.userRepo.save(user);
+  }
+
+  async getLastCoinHistory(userId: number): Promise<CoinHistoryEntity | null> {
+    try {
+      const result = await this.coinHistoryRepository.find({
+        where: {
+          userId
+        },
+        take: 1,
+        order: {
+          createdAt: 'DESC'
+        }
+      });
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      return result[0];
+    } catch (error) {
+      return null;
+    }
+  }
+
+
+  async openCase(userId: number): Promise<ECaseType | null> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`Пользователь с идентификатором ${userId} не найден`);
+    }
+
+    if (user.gameCoins < CASE_PRICE) {
+      throw new BadRequestException(`У пользователя недостаточно монет, необходимо ${CASE_PRICE}`);
+    }
+
+    const coef = Math.random();
+    let caseType: ECaseType;
+
+    for (const key of Object.values(ECaseType)) {
+      const [ bottom, top ] = CASE_CHANCES[key];
+      if (coef >= bottom && coef <= top) {
+        caseType = key as ECaseType;
+        break;
+      }
+    }
+
+    if (!caseType) {
+      throw new InternalServerErrorException(`Произошла неизвестная ошибка при вычислении кейса`)
+    }
+
+    await this.caseFunctions[caseType](user.id);
+    return caseType;
   }
 }

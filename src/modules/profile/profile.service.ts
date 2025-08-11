@@ -23,7 +23,8 @@ export class ProfileService {
     }
     const user = users[0];
 
-    const energyUser = await this.userService.setEnergy(user.walletAddress);
+    const energyUser = await this.userService.setEnergyAndCoins(user.walletAddress);
+
 
     const [allUsers, totalUsers] = await this.userRepository.findAndCount({
       select: ['id', 'gameCoins'],
