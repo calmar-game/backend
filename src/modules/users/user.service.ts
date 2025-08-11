@@ -537,6 +537,9 @@ export class UserService {
     }
 
     await this.caseFunctions[caseType](user.id);
+    user.gameCoins -= CASE_PRICE;
+    await this.userRepo.save(user);
+    
     return caseType;
   }
 
