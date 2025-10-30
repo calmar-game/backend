@@ -11,6 +11,7 @@ import { TokenService } from '../token/token.service';
 import { UserTasksEntity } from './entity/user-tasks.entity';
 import { CoinHistoryEntity } from './entity/coin-history.entity';
 import { CaseHistoryEntity } from './entity/case-history.entity';
+import { EnergyHistoryEntity } from './entity/energy-history.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CaseHistoryEntity } from './entity/case-history.entity';
       UserTasksEntity,
       CoinHistoryEntity,
       CaseHistoryEntity,
+      EnergyHistoryEntity,
     ]), 
     JwtProviderModule,
     EnergyCacheModule,

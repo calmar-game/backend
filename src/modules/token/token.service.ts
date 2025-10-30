@@ -35,4 +35,17 @@ export class TokenService {
       throw error;
     }
   }
+
+  async getSolBalance(walletAddress: string): Promise<number> {
+    try {
+      const wallet = new PublicKey(walletAddress);
+      const balance = await this.connection.getBalance(wallet);
+      
+      // Конвертируем из lamports в SOL (1 SOL = 10^9 lamports)
+      return balance / 1e9;
+    } catch (error) {
+      console.error('Error getting SOL balance:', error);
+      throw error;
+    }
+  }
 }

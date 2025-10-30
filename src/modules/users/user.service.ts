@@ -14,6 +14,7 @@ import { TokenService } from '../token/token.service';
 import { UserTasksEntity } from './entity/user-tasks.entity';
 import { CoinHistoryEntity } from './entity/coin-history.entity';
 import { CaseHistoryEntity, ECaseType } from './entity/case-history.entity';
+import { EnergyHistoryEntity } from './entity/energy-history.entity';
 
 const CASE_PRICE = 200;
 const COINS_PER_TOKEN = 100;
@@ -211,6 +212,8 @@ export class UserService {
     private readonly coinHistoryRepository: Repository<CoinHistoryEntity>,
     @InjectRepository(CaseHistoryEntity)
     private readonly caseHistoryRepository: Repository<CaseHistoryEntity>,
+    @InjectRepository(EnergyHistoryEntity)
+    private readonly energyHistoryRepository: Repository<EnergyHistoryEntity>,
   ) {}
 
 
@@ -428,19 +431,22 @@ export class UserService {
     return this.jwtService.verify(token); 
   }
 
-  private getEnergyForBalance(balance: number): number {
-    if (balance < 100) {
-      return 30;
-    } else if (balance < 300) {
-      return 60;
+  private getEnergyForSolBalance(solBalance: number): number {
+    if (solBalance >= 1) {
+      return 120;
+    } else if (solBalance >= 0.1) {
+      return 80;
+    } else if (solBalance >= 0.01) {
+      return 40;
     } else {
-      return 100;
+      return 2;
     }
   }
 
   async setEnergyAndCoins(wallet: string): Promise<UserDto> {
     const tokenBalance = await this.tokenService.getTokenBalance(wallet);
-    console.log(tokenBalance);
+    const solBalance = await this.tokenService.getSolBalance(wallet);
+    console.log('Token balance:', tokenBalance, 'SOL balance:', solBalance);
     const user = await this.userRepo.findOne({ where: { walletAddress: wallet } });
 
     if (!user) {
@@ -468,17 +474,46 @@ export class UserService {
       }
     }
 
-
-
-    const energyFromBalance = this.getEnergyForBalance(tokenBalance);
+    const energyFromBalance = this.getEnergyForSolBalance(solBalance);
 
     const energyFromTasks = await this.userTaskRepo.find({ where: { userId: user.id, completed: true }, relations: ['task'] });
     const totalEnergy = energyFromTasks.reduce((acc, item) => acc + item.task?.value, 0);
 
     const energyMax = energyFromBalance + totalEnergy;
 
+    const energyRow = await this.getLastEnergyHistory(user.id);
+    if (energyRow) {
+      const { solBalance: lastSolBalance, createdAt } = energyRow;
+      if (lastSolBalance < solBalance) {
+        const oldEnergyFromBalance = this.getEnergyForSolBalance(lastSolBalance);
+        const energyIncrease = energyFromBalance - oldEnergyFromBalance;
+        if (energyIncrease > 0) {
+          user.energyCurrent = Math.min(user.energyCurrent + energyIncrease, MAX_ENERGY);
+        }
+        await this.energyHistoryRepository.save({
+          userId: user.id,
+          solBalance: solBalance,
+        })
+      } else {
+        const now = new Date().getTime();
+        const month = 30 * 24 * 60 * 60 * 1000;
+        if ((lastSolBalance !== solBalance) && createdAt.getTime() + month < now) {
+          await this.energyHistoryRepository.save({
+            userId: user.id,
+            solBalance: solBalance,
+          })
+        }
+      }
+    } else {
+      await this.energyHistoryRepository.save({
+        userId: user.id,
+        solBalance: solBalance,
+      })
+      user.energyCurrent = Math.min(energyMax, MAX_ENERGY);
+    }
+
     if (user.energyMax > energyMax) {
-      const { energyCurrent, energyMax } = user
+      const { energyCurrent, energyMax: oldEnergyMax } = user
       const additionalEnergy = energyCurrent > energyMax ?  energyCurrent - energyMax : 0;
       const currentEnergy = energyMax + additionalEnergy
       user.energyCurrent = currentEnergy > MAX_ENERGY ? MAX_ENERGY : currentEnergy;
@@ -490,6 +525,28 @@ export class UserService {
   async getLastCoinHistory(userId: number): Promise<CoinHistoryEntity | null> {
     try {
       const result = await this.coinHistoryRepository.find({
+        where: {
+          userId
+        },
+        take: 1,
+        order: {
+          createdAt: 'DESC'
+        }
+      });
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      return result[0];
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getLastEnergyHistory(userId: number): Promise<EnergyHistoryEntity | null> {
+    try {
+      const result = await this.energyHistoryRepository.find({
         where: {
           userId
         },

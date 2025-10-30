@@ -20,10 +20,10 @@ export class UserEntity implements IUser{
   @Column({ nullable: true })
   username: string;
 
-  @Column({ default: 10 })
+  @Column({ default: 2 })
   energyCurrent: number;
 
-  @Column({ default: 10 })
+  @Column({ default: 2 })
   energyMax: number;
 
   @Column({ default: 0 })
